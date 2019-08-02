@@ -6,7 +6,7 @@
  binmode(STDOUT,':utf8');
  use open(':encoding(utf8)');
  use Data::Dumper;
-  use POSIX qw(strftime);
+ use POSIX qw(strftime);
  use lib ('libs', '.');
  use logging;
  use configuration;
@@ -19,17 +19,11 @@
 
  my $DEBUG = $conf->get('app')->{'debug'};
 
- # cheak run as script for opc
- # first parameter number bof
- if ( $#ARGV == 4 ) {
-	print "execute script \n" if $DEBUG;
-	opc_write($conf, $log, \@ARGV);
- }
 
  opc_write($conf, $log, [1,'','','']);
  
  
-  sub opc_write {
+ sub opc_write {
 	my($conf, $log, $values) = @_;
 	
 	$log->save('i', "------ start ------");
@@ -42,20 +36,20 @@
 	$opc->set('progid' => $conf->get('opc')->{progid});
 	$opc->set('name' => $conf->get('opc')->{name});
 	$opc->set('host' => $conf->get('opc')->{host});
-	$opc->set('group_name' => $conf->get('opc')->{group}.$bof);
-	
-	#$opc->set('tags' => get_all_tags($conf) );
-	$opc->set('tags' => $conf->get('bof')->{$bof}->{'opc'} );
-	
+	$opc->set('groups' => $conf->get('groups'));
+
 	$opc->connect();
-	
+
+#	$opc->read("reads");
+#	exit;
+		
 	# установка признака 1 в конец
 	push @{$values}, '1';
 	# удаляем 1 элемент - номер конвертера
 	splice(@{$values}, 0, 1);
 
 	foreach (1..1000) {
-		$opc->read($bof);
+		$opc->read('reads');
 		select undef, undef, undef, 0.2;
 	}
 	#$opc->write($values->[0], [4, 3, 2, 1 , 2]);
