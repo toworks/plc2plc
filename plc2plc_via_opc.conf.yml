@@ -1,0 +1,141 @@
+
+opc:
+    progid: Graybox.OPC.DAWrapper
+    name: Kepware.KEPServerEX.V6
+    host: 10.21.2.84
+    group: daemon
+
+serial:
+    stopbits: 1
+    parity: even
+    databits: 8
+    baud: 9600
+
+ethernet:
+    host: 0.0.0.0
+#    port: 8520
+    port: 8513
+    ip_secondary: 192.168.4.1
+    primary: false
+
+bof:
+    1:
+        enable: true
+        serial:
+            enable: false
+            port: 1
+        opc:
+            - temp: 'OPC_LABEL.CPMP.GLOBAL.WATCH_DOG'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 192.168.2.20
+            login: sa
+            password: SA_conv1
+            database: conv1
+            procedure: ZAMER_TMP_MULT
+
+    2:
+        enable: false
+        serial:
+            enable: false
+            port: 2
+        opc: 
+            - temp: '[SHU2K2]N7:218'
+            - carbon: '[SHU2K2]F8:111'
+            - oxidation: '[SHU2K2]F8:112'
+            - theoretical_carbon: '[SHU2K2]F8:115'
+            - mark: '[SHU2K2]N7:89'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 192.168.2.18
+            login: RsViewC2
+            password: SLC
+            database: CONV2
+            procedure: ZAMER_TMP_MULT
+                    
+    3:
+        enable: false
+        serial:
+            enable: false
+            port: 3
+        opc:
+            - temp: '[SHU2K3]N7:129'
+            - carbon: '[SHU2K3]F8:111'
+            - oxidation: '[SHU2K3]F8:112'
+            - theoretical_carbon: '[SHU2K3]F8:115'
+            - mark: '[SHU2K3]N7:139'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 192.168.2.19
+            login: sa
+            password: ''
+            database: conv3
+            procedure: ZAMER_TMP_MULT
+
+    4:
+        enable: false
+        serial:
+            enable: false
+            port: 4
+        opc:
+            - temp: '[SHU2K4]N7:126'
+            - carbon: '[SHU2K4]F8:111'
+            - oxidation: '[SHU2K4]F8:112'
+            - theoretical_carbon: 
+            - mark: '[SHU2K4]N7:128'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 192.168.4.1
+            login: sa
+            password: 12345678
+            database: CONV4
+            procedure: ZAMER_TMP_MULT
+
+    5:
+        enable: false
+        serial:
+            enable: false
+            port: 1
+        opc:
+            - temp: '[SHU2K5]N7:218'
+            - carbon: '[SHU2K5]F8:111'
+            - oxidation: '[SHU2K5]F8:112'
+            - theoretical_carbon: 
+            - mark: '[SHU2K5]N7:217'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 
+            login: 
+            password: 
+            database: 
+            procedure: 
+
+    6:
+        enable: false
+        serial:
+            enable: false
+            port: 1
+        opc:
+            - temp: '[SHU2K5]N7:218'
+            - carbon: '[SHU2K5]F8:111'
+            - oxidation: '[SHU2K5]F8:112'
+            - theoretical_carbon: 
+            - mark: '[SHU2K5]N7:217'
+        sql:
+            type: mssql
+            driver: 'SQL Server'
+            host: 
+            login: 
+            password: 
+            database: 
+            procedure: 
+
+app:
+    cycle: 1
+    perl: 'd:\multilab_reader\language\perl\perl\bin\perl.exe'
+    debug: true

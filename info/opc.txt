@@ -1,0 +1,70 @@
+﻿---------------------------------------------------------------------
+использование http://www.gray-box.net/download_daawrapper.php
+
+устанавливаем и регистрируем согласно файла readme.txt
+для gray-box dll вместо OPC.Automation используется Graybox.OPC.DAWrapper
+используя DLL от gray-box устанавливать библиотеку OPCDAAuto.dll не нужно.
+
+другие классы:
+Matrikon.OPC.Automation
+Graybox.OPC.DAWrapper
+OPC.SiemensDAAuto
+HSCOPC.Automation
+RSI.OPCAutomation
+OPC.Automation
+
+---------------------------------------------------------------------
+
+в x64 разрядной windows установлен x32 библиотека OPCDAAuto.dll
+поэтому нужно использовать сборку x32 strawberry-perl-5.28.1.1-32bit-portable
+или выше
+
+в perl нужно установить модуль Win32::OLE::OPC
+
+---------------------------------------------------------------------
+
+
+если при соединении с OPC сервером ошибка содержащая "DLL"
+нужно проверить наличие OPCDAAuto.dll и в каком каталоге находитья 
+x32
+	c:\windows\system32\
+x64
+	c:\windows\sysywow64\
+
+для анализа можно использовать утилиту oleview.exe (внешняя)
+ветка All Objects -> OPC Automation 2.0 Server Object
+
+---------------------------------------------------------------------
+
+
+http://forums.devshed.com/perl-programming-6/win32-ole-opc-com-progid-390755.html
+Solution:
+
+   After going through everything in the COM browser, I found the solution in the
+   Registry under HKEY_LOCAL_MACHINE->SOFTWARE->Classes:
+    Code:
+	    my $dllprogid = 'RSI.OPCAutomation';
+	    my $serverprogid = 'RSLinx OPC Server';
+
+    This allows the test script to return a list of topics available from the
+    OPC server, but it also returns references to the latest two PLC's I was
+    online with which themselves are NOT OPC topics (I will figure that out later).
+    So the trick here is to know what the OPC server expects to be called.
+    I am still confused because the Registry entries do not name or directly
+    reference the RSIOPCAuto.dll that RSLinx is using. Having an error message
+    referring to a 'dispatch DLL' was misleading.
+
+
+при ошибке
+OPC::Item::Write Matrikon.OPC.DDE:
+    Win32::OLE(0.1707) error 0x80070057: "The parameter is incorrect"
+    in METHOD/PROPERTYGET "Write"
+ at C:/Program Files/Perl/lib/Win32/OLE/OPC.pm line 1666
+
+https://www.perlmonks.org/?node_id=644273
+I was just trying this as well with the same problem. Since most of the values I am trying to write are VT_R4,
+I changed the line 1559 in the OPC.pm module from:
+my $value = Variant(VT_VARIANT|VT_BYREF, shift);
+to
+my $value = Variant(VT_R4|VT_BYREF, shift);
+and voila!! it works fine. And this mod begs the question, What about other types?...
