@@ -6,29 +6,58 @@
  binmode(STDOUT,':utf8');
  use open(':encoding(utf8)');
  use Data::Dumper;
+ use threads;
+ use threads::shared;
  use POSIX qw(strftime);
  use lib ('libs', '.');
  use logging;
  use configuration;
  use _opc;
  
+ my $DEBUG: shared;
+
  $| = 1;  # make unbuffered
 
+ my $VERSION = "0.1 (20190805)";
  my $log = LOG->new();
  my $conf = configuration->new($log);
 
- my $DEBUG = $conf->get('app')->{'debug'};
+ $log->save('i', "program version: ".$VERSION);
+ 
+ $DEBUG = $conf->get('app')->{'debug'};
 
+ $SIG{'TERM'} = $SIG{'HUP'} = $SIG{'INT'} = sub {
+                      local $SIG{'TERM'} = 'IGNORE';
+#						$log->save('d', "SIGNAL TERM | HUP | INT | $$");
+					  $log->save('i', "stop app");
+                      kill TERM => -$$;
+ };
 
- opc_write($conf, $log);
+ # main
+ threads->new(\&main, $$, $conf, $log);
+
+ # main loop
+ {
+   $log->save('i', "start main loop");
+
+   while (threads->list()) {
+#        $log->save('d', "thread main");
+	   sleep(1);
+	   #select undef, undef, undef, 1;
+       if ( ! threads->list(threads::running) ) {
+#            $daemon->remove_pid();
+           $SIG{'TERM'} = 'DEFAULT'; # Восстановить стандартный обработчик
+           kill TERM => -$$;
+		   $log->save('i', "PID $$");
+        }
+    }
+  }
+
  
  
- sub opc_write {
-	my($conf, $log) = @_;
-	
-	$log->save('i', "------ start ------");
-	
-
+ sub main {
+    my($id, $conf, $log) = @_;
+    $log->save('i', "start thread pid $id");
 
 	# opc create object
 	my $opc = _opc->new($log);
@@ -38,20 +67,13 @@
 	$opc->set('host' => $conf->get('opc')->{host});
 	$opc->set('groups' => $conf->get('groups'));
 
-	$opc->connect();
+	while (1) {
+		$opc->connect() if $opc->get('error') == 1;
 
-#	$opc->read("reads");
-#	$opc->write('write', 1);
-#	exit;
-		
-
-	foreach (1..1000) {
 		my $values = $opc->read('read');
-		$opc->write('write', $values);
-		select undef, undef, undef, 0.5;
+		$opc->write('write', $values) if defined($values);
+
+        print "cycle: ",$conf->get('app')->{'cycle'}, "\n" if $DEBUG;
+        select undef, undef, undef, $conf->get('app')->{'cycle'} || 10;
 	}
-	#$opc->write($values->[0], [4, 3, 2, 1 , 2]);
-#	$opc->write($bof, $values);
-#	$opc->read($bof);
-	$log->save('i', "------ stop ------");
   }
