@@ -5,13 +5,13 @@ opc:
     host: 10.21.2.84
 
 groups:
-    reads:
+    read:
           - 'OPC_LABEL.CPMP.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.CPMP.GLOBAL.UPS'
+          - 'OPC_LABEL.CPMP.SCALE1.WEIGHT_SP_MAX'
     write:
-          - 'OPC_LABEL.CPMP.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.CPMP.GLOBAL.UPS'
+          - 'OPC_LABEL.MC 250-5 L.Packing_L.AUTO_MANU'
+          - 'OPC_LABEL.MC 250-5 L.Packing_L.WEIGHT_SP_MAX'
 
 app:
-    cycle: 0.3
+    cycle: 0.5
     debug: true

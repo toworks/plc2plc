@@ -20,15 +20,15 @@
  my $DEBUG = $conf->get('app')->{'debug'};
 
 
- opc_write($conf, $log, [1,'','','']);
+ opc_write($conf, $log);
  
  
  sub opc_write {
-	my($conf, $log, $values) = @_;
+	my($conf, $log) = @_;
 	
 	$log->save('i', "------ start ------");
 	
-	my $bof = $values->[0];
+
 
 	# opc create object
 	my $opc = _opc->new($log);
@@ -41,16 +41,14 @@
 	$opc->connect();
 
 #	$opc->read("reads");
+#	$opc->write('write', 1);
 #	exit;
 		
-	# установка признака 1 в конец
-	push @{$values}, '1';
-	# удаляем 1 элемент - номер конвертера
-	splice(@{$values}, 0, 1);
 
 	foreach (1..1000) {
-		$opc->read('reads');
-		select undef, undef, undef, 0.2;
+		my $values = $opc->read('read');
+		$opc->write('write', $values);
+		select undef, undef, undef, 0.5;
 	}
 	#$opc->write($values->[0], [4, 3, 2, 1 , 2]);
 #	$opc->write($bof, $values);
