@@ -2,15 +2,17 @@
 opc:
     progid: Graybox.OPC.DAWrapper
     name: Kepware.KEPServerEX.V6
-    host: 10.21.2.84
+    host: localhost
 
 groups:
     read:
-          - 'OPC_LABEL.CPMP.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.CPMP.SCALE1.WEIGHT_SP_MAX'
+          - 'OPC_LABEL.MC250-5L-Source.GLOBAL.WATCH_DOG'
+          - 'OPC_LABEL.MC250-5L-Source.Packing.WEIGHT_STAB'
+          - 'OPC_LABEL.MC250-5L-Source.Packing.WEIGHT_CURRENT'
     write:
-          - 'OPC_LABEL.MC 250-5 L.Packing_L.AUTO_MANU'
-          - 'OPC_LABEL.MC 250-5 L.Packing_L.WEIGHT_SP_MAX'
+          - 'OPC_LABEL.MC 250-5 L Packing1.GLOBAL.WATCH_DOG'
+          - 'OPC_LABEL.MC 250-5 L Packing1.Packing.REMOTE_WEIGHT_STAB'
+          - 'OPC_LABEL.MC 250-5 L Packing1.Packing.WEIGHT_CURRENT'
 
 app:
     cycle: 0.5
