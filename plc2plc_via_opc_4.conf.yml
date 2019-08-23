@@ -5,14 +5,14 @@ opc:
     host: localhost
 
 groups:
-    read4:
+    read:
           - 'OPC_LABEL.MC250-4R-Source.Packing.WEIGHT_ZERO'
           - 'OPC_LABEL.MC250-4R-Source.Packing.WEIGHT_CURRENT'
           - 'OPC_LABEL.MC250-4R-Source.Packing.WEIGHT_STAB'
           - 'OPC_LABEL.MC250-4R-Source.Packing.WEIGHT_FIX'
           - 'OPC_LABEL.MC250-4R-Source.GLOBAL.WATCH_DOG'
 
-    write4:
+    write:
           - 'OPC_LABEL.MC 250-4 R Packing.Packing.WEIGHT_ZERO'
           - 'OPC_LABEL.MC 250-4 R Packing.Packing.WEIGHT_CURRENT'
           - 'OPC_LABEL.MC 250-4 R Packing.Packing.WEIGHT_STAB'
