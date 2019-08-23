@@ -21,4 +21,4 @@ groups:
 
 app:
     cycle: 0.2
-    debug: false
+    debug: true
