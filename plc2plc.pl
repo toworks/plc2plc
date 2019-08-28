@@ -72,6 +72,7 @@
 	while (1) {
 #		$opc->connect() if $opc->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('read')} ) {
+			$log->save('d', "read tag: " . $tag) if $DEBUG;
 			$plc_in->read($conf->get('read')->{$tag});
 		}
 		

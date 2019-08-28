@@ -40,7 +40,8 @@ package plc;{
 
     eval{
 		if ( $self->{plc}->{'DEBUG'} ) {
-			Nodave::daveSetDebug(Nodave::daveDebugAll);
+			#Nodave::daveSetDebug(Nodave::daveDebugAll);
+			Nodave::daveSetDebug(0);
 		} else {
 			Nodave::daveSetDebug(0);
 		}
@@ -81,7 +82,6 @@ package plc;{
 	my($self, $tag) = @_;
 	my $result;
 	if ( defined($tag->{db}) ) {
-		#my ($aaa,$res)=Nodave::daveReadBytes($self->{plc}->{dc},daveDB,82,14,2);
 		my ($value, $res) = Nodave::daveReadBytes(	$self->{plc}->{dc},
 													daveDB,
 													$tag->{db},
@@ -91,12 +91,56 @@ package plc;{
 		$result = Nodave::daveGetS8($self->{plc}->{dc}) if $tag->{bytes} == 1;
 		$result = Nodave::daveGetS16($self->{plc}->{dc}) if $tag->{bytes} == 2;
 		$result = Nodave::daveGetS32($self->{plc}->{dc}) if $tag->{bytes} == 4;
-    	
+    
+		
+		$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
 		#$value = $self->dec($value);
 		print scalar time ." ", "val = ", $result, "\n";
 		$self->{log}->save('i', "read tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $result") if $self->{plc}->{'DEBUG'};
 	}
+	
+	if ( defined($tag->{m}) ) {
+	# DB14.DBX5.4 I have to:
+	# dc.readBits(libnodave.daveDB, 14, 44, 1, null);
+	# (5 * 8) + 4 = 44
+	# 492.0, 492.1...etc if I read 1 bit at a time?
+	# Reading 1 bit at a time, with daveReadBits, you have to set the start address to 8*492+0, 8*492+1... etc.
+=comm
+	my($aaa,$res)=Nodave::daveReadBits($self->{plc}->{dc}, daveFlags, 8*$tag->{m}+$tag->{bit}, 1);
+	
+	$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
+	
+	my @abuf2=unpack("C*",$aaa);
+	print "res: $res ok 9\n";
+	printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
+	if ($res==0) {	
+		for (my $i=0; $i<@abuf2; $i++) {
+			$result = $abuf2[$i];
+			printf "position %d = %d \n", $i, $result;
+			$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
+		}
+	}
+=cut
+#=vomm
+		my ($value, $res) = Nodave::daveReadBytes(	$self->{plc}->{dc},
+													daveFlags,
+													0,
+													$tag->{m},
+													2 );
+		
+		$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
+
+		my @buf = split ('',  unpack("B*",$value));
+		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
+		if ($res == 0) {
+			$result = $buf[$tag->{bit}];
+			printf "position %d = %d \n", $tag->{bit}, $result if $self->{plc}->{'DEBUG'};
+			$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
+		}
+#=cut
+	}
   }
+
 =comm
   sub read {
 	my($self, $group) = @_;

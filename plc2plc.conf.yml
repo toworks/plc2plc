@@ -14,10 +14,19 @@ plc:
         slot: 1
 
 read:
-    tag1:
+    WEIGHT_CURRENT:
         db: 82
         start: 14
         bytes: 2
+    REMOTE_SHIFTER_CC16_LOWER_POSITION:
+        m: 400
+        bit: 7
+    REMOTE_WEIGHT_STAB:
+        m: 62
+        bit: 0
+    WATCH_DOG:
+        m: 0
+        bit: 7
 
 write:
           - 'OPC_LABEL.MC 250-5 L Packing.Packing.REMOTE_SHIFTER_CC16_LOWER_POSITION'
