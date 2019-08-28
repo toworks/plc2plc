@@ -79,28 +79,6 @@ print "connect to PLC. function result: $res\n";
 $res=Nodave::daveReadBytes($dc,daveFlags,0,0,16);
 print "read from PLC. function result: $res\n";
 #
-# Now you can read values from the inernal buffer. Buffer read position is auto-incremented
-# according to size.
-#
-#=comm
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU32($dc);
-print "res: $res\n";
-$res=Nodave::daveGetFloat($dc);
-print "res: $res ok 10.0\n";
-#=cut
-#
 # List usage of readBytes: result goes into an internal buffer, but you also get a scalar value
 # that contains the result bytes as a string:
 #
@@ -148,7 +126,8 @@ while ( 1 ) {
 
 	($aaa,$res)=Nodave::daveReadBytes($dc,daveDB,82,14,2);
 	
-	print hex(unpack "H*", $aaa), "\n";
+	my $val = hex(unpack "H*", $aaa), "\n";
+	print "val = ", $val, "\n";
 =comm
 	@abuf2=unpack("C*",$aaa);
 	print "res: $res ok 100\n";
@@ -165,6 +144,7 @@ while ( 1 ) {
 	printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
 	if ($res==0) {	
 		printf "position %d = %d \n", 7, $abuf2[7];
+		&_write($val);
 #		for ($i=0; $i<@abuf2; $i++) {
 #			printf "position %d = %d \n", $i, $abuf2[$i];
 #		}
@@ -172,102 +152,6 @@ while ( 1 ) {
 	
 	select undef, undef, undef, 0.5;
 }
-
-
-=comm
-printf("Testing multiple item read\n");
-#Nodave::daveAddVarToReadRequest($dc,daveInputs,0,0,4); 
-Nodave::davePrepareReadRequest($dc,$pdu); 
-Nodave::daveAddVarToReadRequest($pdu,daveInputs,0,0,4); 
-Nodave::daveAddVarToReadRequest($pdu,daveFlags,0,0,16); 
-Nodave::daveAddVarToReadRequest($pdu,daveFlags,0,10,16); 
-$res=Nodave::daveExecReadRequest($dc,$pdu,$resultSet); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-$res=Nodave::daveUseResult($dc,$resultSet,1); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-
-$res=Nodave::daveGetU8($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetU32($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetFloat($dc);
-print "res: $res ok 10.0\n";
-$res=Nodave::daveGetFloatAt($dc,12);
-print "daveGetFloatAt res: $res ok 10.0\n";
-
-
-
-
-$res=Nodave::daveUseResult($dc,$resultSet,2); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-
-$res=Nodave::daveFreeResults($resultSet); 
-$res=Nodave::daveExecReadRequest($dc,$pdu,$resultSet); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-$res=Nodave::daveUseResult($dc,$resultSet,1); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-
-
-
-$res=Nodave::daveExecReadRequest($dc,$pdu,$resultSet); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-$res=Nodave::daveUseResult($dc,$resultSet,1); 
-printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-
-Nodave::daveDump("Hello World ","asdf",4);
-Nodave::daveDumpPDU($pdu);
-
-$x = Nodave::daveSwapIed_16(42);
-print $x," ",42*256,"\n";
-$x = Nodave::daveSwapIed_16($x);
-print $x,"\n";
-
-($orderCode,$res)=Nodave::daveGetOrderCode($dc); 
-print "orderCode: $orderCode \n";
-
-($szl,$res)=Nodave::daveReadSZL($dc,0xA0,0); 
-$answLen=Nodave::daveGetAnswLen($dc);
-print "SZL: $szl  answLen: $answLen \n";
-if ($answLen>4) {
-    $id=Nodave::daveGetU16($dc);
-    $index=Nodave::daveGetU16($dc);
-    print "ID: $id  index: $index\n";
-    if ($answLen>=8) {
-	$SZlen=Nodave::daveGetU16($dc);
-	$SZcount=Nodave::daveGetU16($dc);
-        print "$SZcount elements of $SZlen bytes\n";
-	for ($row=0;$row<$SZcount;$row++) {
-	    for ($el=0;$el<$SZlen;$el++) {
-		$by=Nodave::daveGetU8($dc);
-		printf "%02x",$by;
-	    }
-	    print "\n";
-	}
-    }
-}
-
-Nodave::daveSetTimeout($di,2000000); 
-
-($partnerList,$res)=Nodave::daveListReachablePartners($di); 
-print "res: $res\n";
-if ($res==davePartnerListSize) {
-    @partnerBuf=unpack("C126",$partnerList);
-    for ($i=0;$i<davePartnerListSize;$i++) {
-#	printf "%02x\n",$partnerBuf[$i];
-	if ($partnerBuf[$i]==0x30) {printf "device at $i\n";}
-    }
-}
-=cut
 
 $res=Nodave::daveDisconnectPLC($dc);
 $res=Nodave::daveDisconnectAdapter($di);
@@ -277,14 +161,14 @@ $res=Nodave::closeSocket($ph);
 }
 
 
-#_read;
+_read;
 #exit;
 
-&_write;
+#&_write;
 
 
 sub _write()  {
-
+	my $val = shift;
 
 
 ######################
@@ -306,23 +190,9 @@ $slot=1;	# slot the CPU is in (ISO over TCP only, 3 for some S7-400)
 # IP port for TCP connections (CP x43 or NetLink)
 #
 $ip_port=102;	# ISO over TCP for S7 CPx43, VIPA Speed 7, SAIA Burgess
-#$ip_port=1099;	# MPI/PPI over IBH/MHJ NetLink MPI to Ethernet Gateways
-#
-# The protocol to be used on your interface:
-#
-#$useProto=daveProtoMPI;		# MPI with MPI or TS adapter
-#$useProto=daveProtoMPI2;	# MPI with MPI (or TS?) adapter. Try if daveProtoMPI does not work.
-#$useProto=daveProtoPPI;	# PPI (S7-200) with PPI cable
+
 $useProto=daveProtoISOTCP;	# ISO over TCP for 300/400 family, VIPA Speed 7, SAIA Burgess
-#$useProto=daveProtoISOTCP243;	# ISO over TCP for CP 243
-#$useProto=daveProtoMPI_IBH;	# IBH/MHJ NetLink MPI to Ethernet Gateways on MPI/Profibus
-#$useProto=daveProtoPPI_IBH;	# IBH/MHJ NetLink MPI to Ethernet Gateways on PPI
-#
-# Shall the library print out debug information?
-# Use daveDebugAll and save the output if you want to report problems.
-#
-# for TCP/IP connections uncomment openSocket, comment out setPort below.
-#
+
 print "set debug level\n";
 #Nodave::daveSetDebug(Nodave::daveDebugAll);
 Nodave::daveSetDebug(0);
@@ -333,8 +203,7 @@ my $ph;
 #
 # open a serial port or a TCP/IP connection:
 #
-#$ph=Nodave::setPort("/dev/ttyS0","9600",'E');  # for PPI
-#$ph=Nodave::setPort("/dev/ttyS0","38400",'O');
+
 $ph=Nodave::openSocket($ip_port, $ip_address);	# for ISO over TCP or MPI or PPI over IBH NetLink
 print "port handle: $ph\n";
 
@@ -361,25 +230,7 @@ print "connect to PLC. function result: $res\n";
 $res=Nodave::daveReadBytes($dc,daveFlags,0,0,16);
 print "read from PLC. function result: $res\n";
 
-
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU8($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU16($dc);
-print "res: $res\n";
-$res=Nodave::daveGetU32($dc);
-print "res: $res\n";
-$res=Nodave::daveGetFloat($dc);
-print "res: $res ok 10.0\n";
-
-
+=comm
 my $count=0;
 while (1) {
 
@@ -388,6 +239,8 @@ my @values;
 @values = ("1111") if $count == 1;
 @values = ("3333") if $count == 2;
 @values = ("9911") if $count == 3;
+=cut
+my @values = ($val);
 print $values[0], "--\n";
 $values[0]=Nodave::daveSwapIed_16($values[0]);
 print $values[0], "|--\n";
@@ -404,10 +257,10 @@ $wbuf=pack("L*", @values);
 
 	$res=Nodave::daveWriteBytes($dc,daveDB,10,16,2,$wbuf);
 	printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-	$count++;
-	$count = 0 if $count == 4;
-	select undef, undef, undef, 0.9;
-}
+#	$count++;
+#	$count = 0 if $count == 4;
+#	select undef, undef, undef, 0.9;
+#}
 
 $res=Nodave::daveDisconnectPLC($dc);
 $res=Nodave::daveDisconnectAdapter($di);
