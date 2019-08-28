@@ -1,0 +1,3 @@
+[submodule "libs"]
+	path = libs
+	url = http://krr-app-gitlab01.europe.mittalco.com/saarhipov/perl-libs.git
