@@ -12,13 +12,13 @@
  use lib ('libs', '.');
  use logging;
  use configuration;
- use _opc;
+ use plc;
  
  my $DEBUG: shared;
 
  $| = 1;  # make unbuffered
 
- my $VERSION = "0.1 (20190805)";
+ my $VERSION = "0.1 (20190828)";
  my $log = LOG->new();
  my $conf = configuration->new($log);
 
@@ -59,19 +59,24 @@
     my($id, $conf, $log) = @_;
     $log->save('i', "start thread pid $id");
 
-	# opc create object
-	my $opc = _opc->new($log);
-	$opc->set('DEBUG' => $DEBUG);
-	$opc->set('progid' => $conf->get('opc')->{progid});
-	$opc->set('name' => $conf->get('opc')->{name});
-	$opc->set('host' => $conf->get('opc')->{host});
-	$opc->set('groups' => $conf->get('groups'));
+	# plc in create object
+	my $plc_in = plc->new($log);
+	$plc_in->set('DEBUG' => $DEBUG);
+	$plc_in->set('host' => $conf->get('plc')->{'in'}->{host});
+	$plc_in->set('port' => $conf->get('plc')->{'in'}->{port});
+	$plc_in->set('rack' => $conf->get('plc')->{'in'}->{rack});
+	$plc_in->set('slot' => $conf->get('plc')->{'in'}->{slot});
+
+	$plc_in->connect() if $plc_in->get('error') == 1;
 
 	while (1) {
-		$opc->connect() if $opc->get('error') == 1;
-
-		my $values = $opc->read('read');
-		$opc->write('write', $values) if defined($values);
+#		$opc->connect() if $opc->get('error') == 1;
+		foreach my $tag ( keys %{$conf->get('read')} ) {
+			$plc_in->read($conf->get('read')->{$tag});
+		}
+		
+#		my $values = $opc->read('read');
+#		$opc->write('write', $values) if defined($values);
 
         print "cycle: ",$conf->get('app')->{'cycle'}, "\n" if $DEBUG;
         select undef, undef, undef, $conf->get('app')->{'cycle'} || 10;

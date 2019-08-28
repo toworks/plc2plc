@@ -1,30 +1,30 @@
 
-opc:
-    progid: Graybox.OPC.DAWrapper
-    name: Kepware.KEPServerEX.V6
-    host: localhost
+plc:
+    in:
+        # PLC 400
+        host: 10.21.118.213
+        port: 102
+        rack: 0
+        slot: 3
+    out:
+        # PLC 1200
+        host: 10.21.122.135
+        port: 102
+        rack: 0
+        slot: 1
 
-groups:
-    read:
-          - 'OPC_LABEL.MC250-5L-Source.Packing.SHIFTER_CC16_LOWER_POSITION'
-          - 'OPC_LABEL.MC250-5R-Source.Packing.SHIFTER_CC16_LOWER_POSITION'
-          - 'OPC_LABEL.MC250-5L-Source.Packing.WEIGHT_CURRENT'
-          - 'OPC_LABEL.MC250-5R-Source.Packing.WEIGHT_CURRENT'
-          - 'OPC_LABEL.MC250-5L-Source.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.MC250-5L-Source.Packing.WEIGHT_STAB'
-          - 'OPC_LABEL.MC250-5R-Source.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.MC250-5R-Source.Packing.WEIGHT_STAB'
+read:
+    tag1:
+        db: 82
+        start: 14
+        bytes: 2
 
-    write:
+write:
           - 'OPC_LABEL.MC 250-5 L Packing.Packing.REMOTE_SHIFTER_CC16_LOWER_POSITION'
-          - 'OPC_LABEL.MC 250-5 R Packing.Packing.REMOTE_SHIFTER_CC16_LOWER_POSITION'
           - 'OPC_LABEL.MC 250-5 L Packing.Packing.WEIGHT_CURRENT'
-          - 'OPC_LABEL.MC 250-5 R Packing.Packing.WEIGHT_CURRENT'
           - 'OPC_LABEL.MC 250-5 L Packing.GLOBAL.WATCH_DOG'
           - 'OPC_LABEL.MC 250-5 L Packing.Packing.REMOTE_WEIGHT_STAB'
-          - 'OPC_LABEL.MC 250-5 R Packing.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.MC 250-5 R Packing.Packing.REMOTE_WEIGHT_STAB'
 
 app:
-    cycle: 0.2
-    debug: false
+    cycle: 0.5
+    debug: true
