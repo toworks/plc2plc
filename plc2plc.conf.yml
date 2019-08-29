@@ -2,7 +2,7 @@
 plc:
     in:
         # PLC 400
-        host: 10.21.118.213
+        host: 10.21.118.214
         port: 102
         rack: 0
         slot: 3
@@ -21,18 +21,29 @@ read:
     REMOTE_SHIFTER_CC16_LOWER_POSITION:
         m: 400
         bit: 7
-    REMOTE_WEIGHT_STAB:
-        m: 62
-        bit: 0
-    WATCH_DOG:
-        m: 0
-        bit: 7
+#    REMOTE_WEIGHT_STAB:
+#        m: 62
+#        bit: 0
+#    WATCH_DOG:
+#        m: 0
+#        bit: 7
 
 write:
-          - 'OPC_LABEL.MC 250-5 L Packing.Packing.REMOTE_SHIFTER_CC16_LOWER_POSITION'
-          - 'OPC_LABEL.MC 250-5 L Packing.Packing.WEIGHT_CURRENT'
-          - 'OPC_LABEL.MC 250-5 L Packing.GLOBAL.WATCH_DOG'
-          - 'OPC_LABEL.MC 250-5 L Packing.Packing.REMOTE_WEIGHT_STAB'
+    WEIGHT_CURRENT:
+        db: 10
+        start: 16
+        bytes: 2
+    REMOTE_SHIFTER_CC16_LOWER_POSITION:
+        db: 10
+        start: 0
+        bit: 0
+    REMOTE_WEIGHT_STAB:
+        db: 10
+        start: 0
+        bit: 0
+#    WATCH_DOG:
+#        m: 0
+#        bit: 7
 
 app:
     cycle: 0.5

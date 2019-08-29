@@ -69,11 +69,25 @@
 
 	$plc_in->connect() if $plc_in->get('error') == 1;
 
+	# plc out create object
+	my $plc_out = plc->new($log);
+	$plc_out->set('DEBUG' => $DEBUG);
+	$plc_out->set('host' => $conf->get('plc')->{'out'}->{host});
+	$plc_out->set('port' => $conf->get('plc')->{'out'}->{port});
+	$plc_out->set('rack' => $conf->get('plc')->{'out'}->{rack});
+	$plc_out->set('slot' => $conf->get('plc')->{'out'}->{slot});
+
+	$plc_out->connect() if $plc_out->get('error') == 1;
+
 	while (1) {
 #		$opc->connect() if $opc->get('error') == 1;
-		foreach my $tag ( keys %{$conf->get('read')} ) {
-			$log->save('d', "read tag: " . $tag) if $DEBUG;
-			$plc_in->read($conf->get('read')->{$tag});
+		foreach my $tag ( keys %{$conf->get('write')} ) {
+			$log->save('d', "start read tag: " . $tag) if $DEBUG;
+			my $value = $plc_in->read($conf->get('read')->{$tag});
+			$log->save('d', "end read tag: " . $tag) if $DEBUG;
+			$log->save('d', "start write tag: " . $tag) if $DEBUG;
+			$plc_out->write($conf->get('write')->{$tag}, $value);
+			$log->save('d', "end write tag: " . $tag) if $DEBUG;
 		}
 		
 #		my $values = $opc->read('read');

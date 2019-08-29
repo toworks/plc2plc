@@ -87,16 +87,17 @@ package plc;{
 													$tag->{db},
 													$tag->{start},
 													$tag->{bytes} );
+		if ($res == 0) {
+			$result = Nodave::daveGetS8($self->{plc}->{dc}) if $tag->{bytes} == 1;
+			$result = Nodave::daveGetS16($self->{plc}->{dc}) if $tag->{bytes} == 2;
+			$result = Nodave::daveGetS32($self->{plc}->{dc}) if $tag->{bytes} == 4;
 
-		$result = Nodave::daveGetS8($self->{plc}->{dc}) if $tag->{bytes} == 1;
-		$result = Nodave::daveGetS16($self->{plc}->{dc}) if $tag->{bytes} == 2;
-		$result = Nodave::daveGetS32($self->{plc}->{dc}) if $tag->{bytes} == 4;
-    
-		
-		$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
-		#$value = $self->dec($value);
-		print scalar time ." ", "val = ", $result, "\n";
-		$self->{log}->save('i', "read tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $result") if $self->{plc}->{'DEBUG'};
+			#$value = $self->dec($value);
+			print scalar time ." ", "val = ", $result, "\n";
+			$self->{log}->save('i', "read tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $result") if $self->{plc}->{'DEBUG'};
+		} else {
+			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+		}
 	}
 	
 	if ( defined($tag->{m}) ) {
@@ -126,87 +127,67 @@ package plc;{
 													daveFlags,
 													0,
 													$tag->{m},
-													2 );
+													1 );
 		
 		$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
 
-		my @buf = split ('',  unpack("B*",$value));
-		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
+#		print "----\n", scalar reverse unpack("B*", $value), "\n----\n";
+#		print "read tag: M: $tag->{m}  bit: $tag->{bit}    value: ". unpack("B8",$res) ."\n" if $self->{plc}->{'DEBUG'};
+		my @buf = split ('',  scalar reverse unpack("B*", $value));
+#		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
 		if ($res == 0) {
 			$result = $buf[$tag->{bit}];
 			printf "position %d = %d \n", $tag->{bit}, $result if $self->{plc}->{'DEBUG'};
 			$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
+		} else {
+			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
 		}
 #=cut
 	}
+	return $result;
   }
 
-=comm
-  sub read {
-	my($self, $group) = @_;
-
-	print Dumper($self->{opc}->{tags}) if $self->{opc}->{'DEBUG'};
-	
-	$self->_set_group_tags($group) if ! defined($self->{opc}->{tags}->{$group});
-	
-	my @values;
-
-	eval{   $self->{opc}->{opcintf}->MoveToRoot;
-			$self->{opc}->{opcintf}->Leafs;
-
-			for ( my $count = 1 ; $count <= scalar @{$self->{opc}->{groups}->{$group}}; $count++ ) {
-				my $item = $self->{opc}->{$group}->{items}->Item($count);
-				my $_timestamp = $item->Read($OPCCache)->{'TimeStamp'};
-				my $timestamp = $_timestamp->Date("yyyy-MM-dd"). " " .$_timestamp->Time("HH:mm:ss");
-				my $value = $item->Read($OPCCache)->{'Value'};
-				$values[$count-1] = $value;
-				$self->{log}->save('i', "read tags: group: $group    value: $value    timestamp: $timestamp") if $self->{opc}->{'DEBUG'};
-#				print "read tags: group: $group    value: $value    timestamp: $timestamp", "\n" if $self->{opc}->{'DEBUG'};
-			}
-	};
-	if($@) { $self->{opc}->{error} = 1;
-			 $self->{log}->save('e', "$@"); }
-	print Dumper(@values) if $self->{opc}->{'DEBUG'};
-	return \@values || undef;
-  }
-=cut
-=comm
   sub write {
-	my($self, $group, $values) = @_;
+	my($self, $tag, $value) = @_;
 
-	$self->_set_group_tags($group) if ! defined($self->{opc}->{tags}->{$group});
+	if ( defined($tag->{db}) and  defined($tag->{bytes}) ) {
+		$value = Nodave::daveSwapIed_8($value) if $tag->{bytes} == 1;
+		$value = Nodave::daveSwapIed_16($value) if $tag->{bytes} == 2;
+		$value = Nodave::daveSwapIed_32($value) if $tag->{bytes} == 4;
+		
+		print $value, "|--\n";
+		$value = pack("L*", $value);
+		my $res = Nodave::daveWriteBytes(	$self->{plc}->{dc},
+											daveDB,
+											$tag->{db},
+											$tag->{start},
+											$tag->{bytes},
+											$value );
+		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
+		if ($res == 0) {
+			$self->{log}->save('i', "write tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $value") if $self->{plc}->{'DEBUG'};
+		} else {
+			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+		}
+	}
 
-	eval{	$self->{opc}->{opcintf}->MoveToRoot;
-			$self->{opc}->{opcintf}->Leafs;
-			for ( my $count = 1 ; $count <= scalar @{$self->{opc}->{groups}->{$group}}; $count++ ) {
-				my $item = $self->{opc}->{$group}->{items}->Item($count);
-				my $index = $count-1;
-				eval {  $item->Write($values->[$index]) or die "$!";  };
-				my $tag = $self->{opc}->{groups}->{$group}->[$index];
-				$self->{log}->save('i', "write tags: group: $group\tcount: ".$count."\ttag: ".$tag."\tvalue: ".$values->[$index]) if $self->{opc}->{'DEBUG'};
-			}
-	};
-	if($@) { $self->{opc}->{error} = 1;
-			 $self->{log}->save('e', "$@"); }
+	if ( defined($tag->{db}) and  defined($tag->{bit}) ) {
+		my $bit = (8*$tag->{start})+$tag->{bit};
+		my $res = Nodave::daveWriteBytes(	$self->{plc}->{dc},
+											daveDB,
+											$tag->{db},
+											$bit,
+											1,
+											$value );
+		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
+		if ($res == 0) {
+			$self->{log}->save('i', "write tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bit}    value: $value") if $self->{plc}->{'DEBUG'};
+		} else {
+			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+		}
+	}
+	
+
   }
-
-  sub _set_group_tags {
-	my($self, $group) = @_;
-	eval{
-	print Dumper( \@{$self->{opc}->{groups}->{$group}} );
-			$self->{opc}->{opcintf}->MoveToRoot;
-			for ( my $count = 1 ; $count <= scalar @{$self->{opc}->{groups}->{$group}}; $count++ ) {
-				my $tag = $self->{opc}->{groups}->{$group}->[$count-1];
-				$self->{opc}->{$group}->{items}->AddItem($tag, $self->{opc}->{opcintf});
-				#print "count: $count tag: $tag\n";
-				$self->{log}->save('d', "add tag: count: $count    tag: $tag") if $self->{opc}->{'DEBUG'};
-			}
-			$self->{opc}->{tags}->{$group} = 1;
-			$self->{opc}->{error} = 0;
-	};
-	if($@) { $self->{opc}->{error} = 1;
-			 $self->{log}->save('e', "$@"); }
-  }
-=cut
 }
 1;
