@@ -80,14 +80,18 @@
 		my $t0 = [gettimeofday];
 		$plc_in->connect() if $plc_in->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('write')} ) {
-#			$log->save('d', "start read tag: " . $tag) if $DEBUG;
+			my $t0_read = [gettimeofday];
 			my $value = $plc_in->read($conf->get('read')->{$tag}) if $plc_in->get('error') != 1;
-#			$log->save('d', "end read tag: " . $tag) if $DEBUG;
+			my $t1_read = [gettimeofday];
+			my $tread_between = tv_interval $t0_read, $t1_read;
+			$log->save('d', "read:    time:  $tread_between  tag: $tag") if $DEBUG;
 			if ( defined($conf->get('write')->{$tag}) ) {
 				$plc_out->connect() if $plc_out->get('error') == 1;
-#				$log->save('d', "start write tag: " . $tag) if $DEBUG;
+				my $t0_write = [gettimeofday];
 				$plc_out->write($conf->get('write')->{$tag}, $value) if $plc_out->get('error') != 1;
-#				$log->save('d', "end write tag: " . $tag) if $DEBUG;
+				my $t1_write = [gettimeofday];
+				my $twrite_between = tv_interval $t0_read, $t1_read;
+			    $log->save('d', "write:    time: $twrite_between  tag: $tag") if $DEBUG;
 			}
 		}
 		my $t1 = [gettimeofday];
