@@ -67,7 +67,7 @@
 	$plc_in->set('rack' => $conf->get('plc')->{'in'}->{rack});
 	$plc_in->set('slot' => $conf->get('plc')->{'in'}->{slot});
 
-	$plc_in->connect() if $plc_in->get('error') == 1;
+#	$plc_in->connect() if $plc_in->get('error') == 1;
 
 	# plc out create object
 	my $plc_out = plc->new($log);
@@ -77,23 +77,21 @@
 	$plc_out->set('rack' => $conf->get('plc')->{'out'}->{rack});
 	$plc_out->set('slot' => $conf->get('plc')->{'out'}->{slot});
 
-	$plc_out->connect() if $plc_out->get('error') == 1;
+#	$plc_out->connect() if $plc_out->get('error') == 1;
 
 	while (1) {
-#		$opc->connect() if $opc->get('error') == 1;
+		$plc_in->connect() if $plc_in->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('write')} ) {
 #			$log->save('d', "start read tag: " . $tag) if $DEBUG;
-			my $value = $plc_in->read($conf->get('read')->{$tag});
+			my $value = $plc_in->read($conf->get('read')->{$tag}) if $plc_in->get('error') != 1;
 #			$log->save('d', "end read tag: " . $tag) if $DEBUG;
 			if ( defined($conf->get('write')->{$tag}) ) {
+				$plc_out->connect() if $plc_out->get('error') == 1;
 #				$log->save('d', "start write tag: " . $tag) if $DEBUG;
-				$plc_out->write($conf->get('write')->{$tag}, $value);
+				$plc_out->write($conf->get('write')->{$tag}, $value) if $plc_out->get('error') != 1;
 #				$log->save('d', "end write tag: " . $tag) if $DEBUG;
 			}
 		}
-		
-#		my $values = $opc->read('read');
-#		$opc->write('write', $values) if defined($values);
 
         print "cycle: ",$conf->get('app')->{'cycle'}, "\n" if $DEBUG;
         select undef, undef, undef, $conf->get('app')->{'cycle'} || 10;

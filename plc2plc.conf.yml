@@ -22,8 +22,6 @@ read:
         m: 400
         bit: 7
     REMOTE_WEIGHT_STAB:
-#        m: 0
-#        bit: 7
         m: 62
         bit: 0
     WATCH_DOG:
