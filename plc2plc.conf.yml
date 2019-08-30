@@ -21,29 +21,32 @@ read:
     REMOTE_SHIFTER_CC16_LOWER_POSITION:
         m: 400
         bit: 7
-#    REMOTE_WEIGHT_STAB:
-#        m: 62
-#        bit: 0
-#    WATCH_DOG:
+    REMOTE_WEIGHT_STAB:
 #        m: 0
 #        bit: 7
+        m: 62
+        bit: 0
+    WATCH_DOG:
+        m: 0
+        bit: 7
 
 write:
     WEIGHT_CURRENT:
+        type: float
         db: 10
-        start: 16
-        bytes: 2
+        start: 12
+        bytes: 4
     REMOTE_SHIFTER_CC16_LOWER_POSITION:
         db: 10
-        start: 0
-        bit: 0
+        start: 38
+        bit: 2
     REMOTE_WEIGHT_STAB:
         db: 10
-        start: 0
+        start: 28
         bit: 0
-#    WATCH_DOG:
-#        m: 0
-#        bit: 7
+    WATCH_DOG:
+        m: 100
+        bit: 0
 
 app:
     cycle: 0.5

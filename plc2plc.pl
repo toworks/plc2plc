@@ -82,12 +82,14 @@
 	while (1) {
 #		$opc->connect() if $opc->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('write')} ) {
-			$log->save('d', "start read tag: " . $tag) if $DEBUG;
+#			$log->save('d', "start read tag: " . $tag) if $DEBUG;
 			my $value = $plc_in->read($conf->get('read')->{$tag});
-			$log->save('d', "end read tag: " . $tag) if $DEBUG;
-			$log->save('d', "start write tag: " . $tag) if $DEBUG;
-			$plc_out->write($conf->get('write')->{$tag}, $value);
-			$log->save('d', "end write tag: " . $tag) if $DEBUG;
+#			$log->save('d', "end read tag: " . $tag) if $DEBUG;
+			if ( defined($conf->get('write')->{$tag}) ) {
+#				$log->save('d', "start write tag: " . $tag) if $DEBUG;
+				$plc_out->write($conf->get('write')->{$tag}, $value);
+#				$log->save('d', "end write tag: " . $tag) if $DEBUG;
+			}
 		}
 		
 #		my $values = $opc->read('read');

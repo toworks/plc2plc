@@ -151,10 +151,15 @@ package plc;{
 	my($self, $tag, $value) = @_;
 
 	if ( defined($tag->{db}) and  defined($tag->{bytes}) ) {
-		$value = Nodave::daveSwapIed_8($value) if $tag->{bytes} == 1;
-		$value = Nodave::daveSwapIed_16($value) if $tag->{bytes} == 2;
-		$value = Nodave::daveSwapIed_32($value) if $tag->{bytes} == 4;
-		
+		if ( $tag->{type} =~ /int/i ) {
+			$value = Nodave::daveSwapIed_8($value) if $tag->{bytes} == 1;
+			$value = Nodave::daveSwapIed_16($value) if $tag->{bytes} == 2;
+			$value = Nodave::daveSwapIed_32($value) if $tag->{bytes} == 4;
+		}
+		if ( $tag->{type} =~ /float|real/i ) {
+			$value = Nodave::daveToPLCfloat($value);
+		}
+
 		print $value, "|--\n";
 		$value = pack("L*", $value);
 		my $res = Nodave::daveWriteBytes(	$self->{plc}->{dc},
@@ -170,10 +175,10 @@ package plc;{
 			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
 		}
 	}
-
+=comm
 	if ( defined($tag->{db}) and  defined($tag->{bit}) ) {
 		my $bit = (8*$tag->{start})+$tag->{bit};
-		my $res = Nodave::daveWriteBytes(	$self->{plc}->{dc},
+		my $res = Nodave::daveWriteBits(	$self->{plc}->{dc},
 											daveDB,
 											$tag->{db},
 											$bit,
@@ -181,13 +186,45 @@ package plc;{
 											$value );
 		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
 		if ($res == 0) {
-			$self->{log}->save('i', "write tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bit}    value: $value") if $self->{plc}->{'DEBUG'};
+			$self->{log}->save('i', "write tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}    value: $value") if $self->{plc}->{'DEBUG'};
 		} else {
-			$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+			$self->{log}->save('e', "result: $res    error: ". Nodave::daveStrerror($res). "    DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}");
 		}
 	}
-	
+=cut
+	if ( defined($tag->{bit}) ) {
+		my ($areas, $msg, $msg_error, $db, $bit);
+		if ( defined($tag->{db}) ) {
+			$areas = daveDB;
+			$db = $tag->{db};
+			$bit = (8*$tag->{start})+$tag->{bit};
+		}
+		if ( defined($tag->{m}) ) {
+			$areas = daveFlags;
+			$db = 0;
+			# m18.0 = 8*18+0 = 144
+			$bit = (8*$tag->{m})+$tag->{bit};
+		}
 
+		$value = '' if $value eq 0; # bit 0 -> empty or undef
+		my $res = Nodave::daveWriteBits(	$self->{plc}->{dc},
+											$areas,
+											$db,
+											$bit,
+											1,
+											$value );
+		printf("function %s result:%d=%s\n", "$areas", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
+		if ($res == 0) {
+			$value = 0 if $value eq '';
+			$msg = "write $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}    value: $value" if defined($tag->{db});
+			$msg = "write $areas tag: M: $tag->{m}  bit:  $tag->{bit}  address: $bit    value: $value" if defined($tag->{m});
+			$self->{log}->save('i', $msg) if $self->{plc}->{'DEBUG'};
+		} else {
+			$msg_error = "    DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}" if defined($tag->{db});
+			$msg_error = "    M: $tag->{m}  bit:  $tag->{bit}  address: $bit" if defined($tag->{m});
+			$self->{log}->save('e', "result: $res    error: ". Nodave::daveStrerror($res). $msg_error);
+		}
+	}
   }
 }
 1;
