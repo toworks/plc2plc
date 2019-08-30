@@ -40,8 +40,7 @@ package plc;{
 
     eval{
 		if ( $self->{plc}->{'DEBUG'} ) {
-			#Nodave::daveSetDebug(Nodave::daveDebugAll);
-			Nodave::daveSetDebug(0);
+			Nodave::daveSetDebug(Nodave::daveDebugAll);
 		} else {
 			Nodave::daveSetDebug(0);
 		}

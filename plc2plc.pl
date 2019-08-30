@@ -8,6 +8,7 @@
  use Data::Dumper;
  use threads;
  use threads::shared;
+ use Time::HiRes qw(gettimeofday tv_interval time);
  use POSIX qw(strftime);
  use lib ('libs', '.');
  use logging;
@@ -67,8 +68,6 @@
 	$plc_in->set('rack' => $conf->get('plc')->{'in'}->{rack});
 	$plc_in->set('slot' => $conf->get('plc')->{'in'}->{slot});
 
-#	$plc_in->connect() if $plc_in->get('error') == 1;
-
 	# plc out create object
 	my $plc_out = plc->new($log);
 	$plc_out->set('DEBUG' => $DEBUG);
@@ -77,9 +76,8 @@
 	$plc_out->set('rack' => $conf->get('plc')->{'out'}->{rack});
 	$plc_out->set('slot' => $conf->get('plc')->{'out'}->{slot});
 
-#	$plc_out->connect() if $plc_out->get('error') == 1;
-
 	while (1) {
+		my $t0 = [gettimeofday];
 		$plc_in->connect() if $plc_in->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('write')} ) {
 #			$log->save('d', "start read tag: " . $tag) if $DEBUG;
@@ -92,8 +90,17 @@
 #				$log->save('d', "end write tag: " . $tag) if $DEBUG;
 			}
 		}
+		my $t1 = [gettimeofday];
+		my $tbetween = tv_interval $t0, $t1;
+		my $cycle;
+		if ( $tbetween < $conf->get('app')->{'cycle'} ) {
+			$cycle = $conf->get('app')->{'cycle'} - $tbetween;
+		} else {
+			$cycle = 0;
+		}
 
-        print "cycle: ",$conf->get('app')->{'cycle'}, "\n" if $DEBUG;
-        select undef, undef, undef, $conf->get('app')->{'cycle'} || 10;
+		$log->save('d', "cycle:  setting: ". $conf->get('app')->{'cycle'} ."  current: ". $cycle) if $DEBUG;
+        print "cycle:  setting: ", $conf->get('app')->{'cycle'}, "  current: ", $cycle, "\n" if $DEBUG;
+        select undef, undef, undef, $cycle;
 	}
   }
