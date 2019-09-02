@@ -54,6 +54,7 @@ package plc;{
 		$res = Nodave::daveConnectPLC($self->{plc}->{dc});
 		exit 1 if $res != 0;
 		$self->{plc}->{error} = 0;
+		$self->{log}->save('i', "connect: ".$self->{plc}->{host});
 	};
 	if($@) { $self->{plc}->{error} = 1;
 			 $self->{log}->save('e', "$@"); }
@@ -65,6 +66,8 @@ package plc;{
 			Nodave::daveDisconnectPLC($self->{plc}->{dc});
 			Nodave::daveDisconnectAdapter($self->{plc}->{di});
 			Nodave::closeSocket($self->{plc}->{ph});
+			$self->{plc}->{error} = 1;
+			$self->{log}->save('i', "disconnect: ".$self->{plc}->{host});
 	};
 	if($@) { $self->{plc}->{error} = 1;
 			 $self->{log}->save('e', "$@"); }
@@ -100,8 +103,9 @@ package plc;{
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
 				}
 		};
-		if($@) { $self->{plc}->{error} = 1;
-		$self->{log}->save('e', "$@"); }
+		if($@) { 	$self->{plc}->{error} = 1;
+					$self->{log}->save('e', "$@"); 
+					$self->disconnect; }
 	}
 	
 	if ( defined($tag->{m}) ) {
@@ -147,8 +151,9 @@ package plc;{
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
 				}
 		};
-		if($@) { $self->{plc}->{error} = 1;
-		$self->{log}->save('e', "$@"); }
+		if($@) { 	$self->{plc}->{error} = 1;
+					$self->{log}->save('e', "$@"); 
+					$self->disconnect; }
 	}
 	return $result;
   }
@@ -182,8 +187,9 @@ package plc;{
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
 				}
 		};
-		if($@) { $self->{plc}->{error} = 1;
-		$self->{log}->save('e', "$@"); }
+		if($@) { 	$self->{plc}->{error} = 1;
+					$self->{log}->save('e', "$@"); 
+					$self->disconnect; }
 	}
 
 	if ( defined($tag->{bit}) ) {
@@ -220,8 +226,9 @@ package plc;{
 					$self->{log}->save('e', "result: $res    error: ". Nodave::daveStrerror($res). $msg_error);
 				}
 		};
-		if($@) { $self->{plc}->{error} = 1;
-		$self->{log}->save('e', "$@"); }
+		if($@) { 	$self->{plc}->{error} = 1;
+					$self->{log}->save('e', "$@"); 
+					$self->disconnect; }
 	}
   }
 }
