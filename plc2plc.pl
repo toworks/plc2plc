@@ -94,6 +94,8 @@
 			    $log->save('d', "write:    time: $twrite_between  tag: $tag") if $DEBUG;
 			}
 		}
+		#$plc_in->disconnect();
+		#$plc_out->disconnect();
 		my $t1 = [gettimeofday];
 		my $tbetween = tv_interval $t0, $t1;
 		my $cycle;
