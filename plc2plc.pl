@@ -86,7 +86,7 @@
 			my $t1_read = [gettimeofday];
 			my $tread_between = tv_interval $t0_read, $t1_read;
 			$log->save('d', "read:    time:  $tread_between  tag: $tag") if $DEBUG;
-			if ( defined($conf->get('write')->{$tag}) ) {
+			if ( defined($conf->get('write')->{$tag}) and defined($value) and $plc_in->get('error') != 1 ) {
 				$plc_out->connect() if $plc_out->get('error') == 1;
 				my $t0_write = [gettimeofday];
 				$plc_out->write($conf->get('write')->{$tag}, $value) if $plc_out->get('error') != 1;
