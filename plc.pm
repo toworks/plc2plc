@@ -101,11 +101,11 @@ package plc;{
 					$self->{log}->save('i', "read tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $result") if $self->{plc}->{'DEBUG'};
 				} else {
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+					$self->disconnect();
 				}
 		};
 		if($@) { 	$self->{plc}->{error} = 1;
-					$self->{log}->save('e', "$@"); 
-					$self->disconnect; }
+					$self->{log}->save('e', "$@"); }
 	}
 	
 	if ( defined($tag->{m}) ) {
@@ -149,11 +149,11 @@ package plc;{
 					$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
 				} else {
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+					$self->disconnect();
 				}
 		};
 		if($@) { 	$self->{plc}->{error} = 1;
-					$self->{log}->save('e', "$@"); 
-					$self->disconnect; }
+					$self->{log}->save('e', "$@"); }
 	}
 	return $result;
   }
@@ -185,11 +185,11 @@ package plc;{
 					$self->{log}->save('i', "write tag: DB: $tag->{db}  start: $tag->{start}  bytes: $tag->{bytes}    value: $value") if $self->{plc}->{'DEBUG'};
 				} else {
 					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+					$self->disconnect();
 				}
 		};
 		if($@) { 	$self->{plc}->{error} = 1;
-					$self->{log}->save('e', "$@"); 
-					$self->disconnect; }
+					$self->{log}->save('e', "$@"); }
 	}
 
 	if ( defined($tag->{bit}) ) {
@@ -224,11 +224,11 @@ package plc;{
 					$msg_error = "    DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}" if defined($tag->{db});
 					$msg_error = "    M: $tag->{m}  bit:  $tag->{bit}  address: $bit" if defined($tag->{m});
 					$self->{log}->save('e', "result: $res    error: ". Nodave::daveStrerror($res). $msg_error);
+					$self->disconnect();
 				}
 		};
 		if($@) { 	$self->{plc}->{error} = 1;
-					$self->{log}->save('e', "$@"); 
-					$self->disconnect; }
+					$self->{log}->save('e', "$@"); }
 	}
   }
 }

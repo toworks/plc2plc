@@ -48,4 +48,4 @@ write:
 
 app:
     cycle: 0.5
-    debug: true
+    debug: false

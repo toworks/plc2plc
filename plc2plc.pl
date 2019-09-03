@@ -78,6 +78,7 @@
 
 	while (1) {
 		my $t0 = [gettimeofday];
+		
 		$plc_in->connect() if $plc_in->get('error') == 1;
 		foreach my $tag ( keys %{$conf->get('write')} ) {
 			my $t0_read = [gettimeofday];
@@ -94,8 +95,7 @@
 			    $log->save('d', "write:    time: $twrite_between  tag: $tag") if $DEBUG;
 			}
 		}
-		#$plc_in->disconnect();
-		#$plc_out->disconnect();
+
 		my $t1 = [gettimeofday];
 		my $tbetween = tv_interval $t0, $t1;
 		my $cycle;
