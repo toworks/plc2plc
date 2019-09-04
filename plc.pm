@@ -63,10 +63,10 @@ package plc;{
   sub disconnect {
 	my($self) = @_;
     eval{
+			$self->{plc}->{error} = 1;
 			Nodave::daveDisconnectPLC($self->{plc}->{dc});
 			Nodave::daveDisconnectAdapter($self->{plc}->{di});
 			Nodave::closeSocket($self->{plc}->{ph});
-			$self->{plc}->{error} = 1;
 			$self->{log}->save('i', "disconnect: ".$self->{plc}->{host});
 	};
 	if($@) { $self->{plc}->{error} = 1;
@@ -113,7 +113,7 @@ package plc;{
 					$self->{log}->save('e', "$@"); }
 	}
 	
-	if ( defined($tag->{m}) ) {
+	if ( defined($tag->{bit}) ) {
 		# DB14.DBX5.4 I have to:
 		# dc.readBits(libnodave.daveDB, 14, 44, 1, null);
 		# (5 * 8) + 4 = 44
@@ -160,11 +160,13 @@ package plc;{
 		if($@) { 	$self->{plc}->{error} = 1;
 					$self->{log}->save('e', "$@"); }
 	}
-	return $result;
+	return $result if $self->{plc}->{error} != 1;
   }
 
   sub write {
 	my($self, $tag, $value) = @_;
+
+	$self->{log}->save('i', "write in type: $tag->{type}    value: $value") if $self->{plc}->{'DEBUG'};
 
 	if ( defined($tag->{db}) and defined($tag->{bytes}) ) {
 		eval {
