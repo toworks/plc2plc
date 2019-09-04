@@ -26,7 +26,7 @@ read:
     WEIGHT_CURRENT_B:
         type: float
         db: 242
-        start: 0
+        start: 4
         bytes: 4
     WEIGHT_STAB_B:
         db: 242
