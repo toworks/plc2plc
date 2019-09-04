@@ -81,6 +81,18 @@ package plc;{
 	return $value;
   }
 
+  sub calc_bit {
+	my($start, $bit) = @_;
+	# DB14.DBX5.4 I have to:
+	# dc.readBits(libnodave.daveDB, 14, 44, 1, null);
+	# (5 * 8) + 4 = 44
+	# 492.0, 492.1...etc if I read 1 bit at a time?
+	# Reading 1 bit at a time, with daveReadBits, you have to set the start address to 8*492+0, 8*492+1... etc.
+	# -------------------------------
+	# m18.0 = 8*18+0 = 144
+	return (8*$start)+$bit;
+  }
+
   sub read {
 	my($self, $tag) = @_;
 	my $result;
@@ -114,46 +126,34 @@ package plc;{
 	}
 	
 	if ( defined($tag->{bit}) ) {
-		# DB14.DBX5.4 I have to:
-		# dc.readBits(libnodave.daveDB, 14, 44, 1, null);
-		# (5 * 8) + 4 = 44
-		# 492.0, 492.1...etc if I read 1 bit at a time?
-		# Reading 1 bit at a time, with daveReadBits, you have to set the start address to 8*492+0, 8*492+1... etc.
-=comm
-		my($aaa,$res)=Nodave::daveReadBits($self->{plc}->{dc}, daveFlags, 8*$tag->{m}+$tag->{bit}, 1);
-		
-		$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
-		
-		my @abuf2=unpack("C*",$aaa);
-		print "res: $res ok 9\n";
-		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
-		if ($res==0) {	
-			for (my $i=0; $i<@abuf2; $i++) {
-				$result = $abuf2[$i];
-				printf "position %d = %d \n", $i, $result;
-				$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
-			}
-		}
-=cut
 		eval {
-				my ($value, $res) = Nodave::daveReadBytes(	$self->{plc}->{dc},
-															daveFlags,
-															0,
-															$tag->{m},
-															1 );
-				
-				$self->{log}->save('e', Nodave::daveStrerror($res)) if $res != 0;
+				my ($areas, $msg, $msg_error, $db, $bit);
+				if ( defined($tag->{db}) ) {
+					$areas = daveDB;
+					$db = $tag->{db};
+					$bit = &calc_bit($tag->{start}, $tag->{bit});
+				}
+				if ( defined($tag->{m}) ) {
+					$areas = daveFlags;
+					$db = 0;
+					$bit = &calc_bit($tag->{m}, $tag->{bit});
+				}
 
-		#		print "----\n", scalar reverse unpack("B*", $value), "\n----\n";
-		#		print "read tag: M: $tag->{m}  bit: $tag->{bit}    value: ". unpack("B8",$res) ."\n" if $self->{plc}->{'DEBUG'};
-				my @buf = split ('',  scalar reverse unpack("B*", $value));
-		#		printf("function result:%d=%s\n", $res, Nodave::daveStrerror($res));
+				my ($value, $res) = Nodave::daveReadBits(	$self->{plc}->{dc},
+													$areas,
+													$db,
+													$bit,
+													1 );
+				$result = unpack("C*",$value);
+				printf("function %s result:%d=%s\n", "$areas", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
 				if ($res == 0) {
-					$result = $buf[$tag->{bit}];
-					printf "position %d = %d \n", $tag->{bit}, $result if $self->{plc}->{'DEBUG'};
-					$self->{log}->save('i', "read tag: M: $tag->{m}  bit: $tag->{bit}    value: $result") if $self->{plc}->{'DEBUG'};
+					$msg = "read $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}    value: $result" if defined($tag->{db});
+					$msg = "read $areas tag: M: $tag->{m}  bit:  $tag->{bit}  address: $bit    value: $result" if defined($tag->{m});
+					$self->{log}->save('i', $msg) if $self->{plc}->{'DEBUG'};
 				} else {
-					$self->{log}->save('e', "result: $res    error: ".Nodave::daveStrerror($res));
+					$msg_error = "    DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}" if defined($tag->{db});
+					$msg_error = "    M: $tag->{m}  bit:  $tag->{bit}  address: $bit" if defined($tag->{m});
+					$self->{log}->save('e', "result: $res    error: ". Nodave::daveStrerror($res). $msg_error);
 					$self->disconnect();
 				}
 		};
@@ -166,7 +166,9 @@ package plc;{
   sub write {
 	my($self, $tag, $value) = @_;
 
-	$self->{log}->save('i', "write in type: $tag->{type}    value: $value") if $self->{plc}->{'DEBUG'};
+	my $type = $tag->{type} || '';
+	
+	$self->{log}->save('i', "write in type: $type    value: $value") if $self->{plc}->{'DEBUG'};
 
 	if ( defined($tag->{db}) and defined($tag->{bytes}) ) {
 		eval {
@@ -205,13 +207,12 @@ package plc;{
 				if ( defined($tag->{db}) ) {
 					$areas = daveDB;
 					$db = $tag->{db};
-					$bit = (8*$tag->{start})+$tag->{bit};
+					$bit = &calc_bit($tag->{start}, $tag->{bit});
 				}
 				if ( defined($tag->{m}) ) {
 					$areas = daveFlags;
 					$db = 0;
-					# m18.0 = 8*18+0 = 144
-					$bit = (8*$tag->{m})+$tag->{bit};
+					$bit = &calc_bit($tag->{m}, $tag->{bit});
 				}
 
 				$value = '' if $value eq 0; # bit 0 -> empty or undef
