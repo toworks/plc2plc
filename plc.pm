@@ -84,7 +84,7 @@ package plc;{
   sub read {
 	my($self, $tag) = @_;
 	my $result;
-	if ( defined($tag->{db}) ) {
+	if ( defined($tag->{db}) and defined($tag->{bytes}) ) {
 		eval {
 				my ($value, $res) = Nodave::daveReadBytes(	$self->{plc}->{dc},
 															daveDB,
@@ -92,9 +92,14 @@ package plc;{
 															$tag->{start},
 															$tag->{bytes} );
 				if ($res == 0) {
-					$result = Nodave::daveGetS8($self->{plc}->{dc}) if $tag->{bytes} == 1;
-					$result = Nodave::daveGetS16($self->{plc}->{dc}) if $tag->{bytes} == 2;
-					$result = Nodave::daveGetS32($self->{plc}->{dc}) if $tag->{bytes} == 4;
+					if ( $tag->{type} =~ /int/i ) {
+						$result = Nodave::daveGetS8($self->{plc}->{dc}) if $tag->{bytes} == 1;
+						$result = Nodave::daveGetS16($self->{plc}->{dc}) if $tag->{bytes} == 2;
+						$result = Nodave::daveGetS32($self->{plc}->{dc}) if $tag->{bytes} == 4;
+					}
+					if ( $tag->{type} =~ /float|real/i ) {
+						$result = Nodave::daveGetFloat($self->{plc}->{dc});
+					}
 
 					#$value = $self->dec($value);
 					print scalar time ." ", "val = ", $result, "\n";
@@ -161,7 +166,7 @@ package plc;{
   sub write {
 	my($self, $tag, $value) = @_;
 
-	if ( defined($tag->{db}) and  defined($tag->{bytes}) ) {
+	if ( defined($tag->{db}) and defined($tag->{bytes}) ) {
 		eval {
 				if ( $tag->{type} =~ /int/i ) {
 					$value = Nodave::daveSwapIed_8($value) if $tag->{bytes} == 1;

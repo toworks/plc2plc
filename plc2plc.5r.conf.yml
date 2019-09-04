@@ -15,6 +15,7 @@ plc:
 
 read:
     WEIGHT_CURRENT:
+        type: int
         db: 82
         start: 14
         bytes: 2

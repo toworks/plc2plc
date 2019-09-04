@@ -2,13 +2,13 @@
 plc:
     in:
         # PLC 400
-        host: 10.21.118.213
+        host: 10.21.118.214
         port: 102
         rack: 0
         slot: 3
     out:
         # PLC 1200
-        host: 10.21.126.196
+        host: 10.21.122.135
         port: 102
         rack: 0
         slot: 1
@@ -42,7 +42,7 @@ write:
     REMOTE_WEIGHT_STAB:
         db: 10
         start: 28
-        bit: 5
+        bit: 0
     WATCH_DOG:
         m: 100
         bit: 0
