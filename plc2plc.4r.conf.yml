@@ -14,33 +14,58 @@ plc:
         slot: 1
 
 read:
-    WEIGHT_FIX:
+    WEIGHT_CURRENT:
         type: float
         db: 242
         start: 0
         bytes: 4
-#    WEIGHT_STAB:
-#        db: 242
-#        start: 8
-#        bit: 4
-#    WATCH_DOG:
-#        db: 242
-#        start: 8
-#        bit: 7
+    WEIGHT_STAB:
+        db: 242
+        start: 8
+        bit: 4
+    WEIGHT_CURRENT_B:
+        type: float
+        db: 242
+        start: 0
+        bytes: 4
+    WEIGHT_STAB_B:
+        db: 242
+        start: 8
+        bit: 5
+    WATCH_DOG:
+        db: 242
+        start: 8
+        bit: 7
+    ALARM:
+        db: 242
+        start: 8
+        bit: 0
 
 write:
-    WEIGHT_FIX:
+    WEIGHT_CURRENT:
         type: float
         db: 10
         start: 12
         bytes: 4
-#    WEIGHT_STAB:
-#        db: 10
-#        start: 28
-#        bit: 5
-#    WATCH_DOG:
-#        m: 100
-#        bit: 0
+    WEIGHT_STAB:
+        db: 10
+        start: 28
+        bit: 5
+    WEIGHT_CURRENT_B:
+        type: float
+        db: 11
+        start: 12
+        bytes: 4
+    WEIGHT_STAB_B:
+        db: 11
+        start: 28
+        bit: 5
+    WATCH_DOG:
+        m: 100
+        bit: 0
+    ALARM:
+        m: 100
+        bit: 1
 
 app:
     cycle: 0.5
