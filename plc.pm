@@ -147,7 +147,7 @@ package plc;{
 				$result = unpack("C*",$value);
 				printf("function %s result:%d=%s\n", "$areas", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
 				if ($res == 0) {
-					$msg = "read $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}    value: $result" if defined($tag->{db});
+					$msg = "read $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}  address: $bit    value: $result" if defined($tag->{db});
 					$msg = "read $areas tag: M: $tag->{m}  bit:  $tag->{bit}  address: $bit    value: $result" if defined($tag->{m});
 					$self->{log}->save('i', $msg) if $self->{plc}->{'DEBUG'};
 				} else {
@@ -225,7 +225,7 @@ package plc;{
 				printf("function %s result:%d=%s\n", "$areas", $res, Nodave::daveStrerror($res)) if $self->{plc}->{'DEBUG'};
 				if ($res == 0) {
 					$value = 0 if $value eq '';
-					$msg = "write $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}    value: $value" if defined($tag->{db});
+					$msg = "write $areas tag: DB: $tag->{db}  start: $tag->{start}  bit: $tag->{bit}  address: $bit    value: $value" if defined($tag->{db});
 					$msg = "write $areas tag: M: $tag->{m}  bit:  $tag->{bit}  address: $bit    value: $value" if defined($tag->{m});
 					$self->{log}->save('i', $msg) if $self->{plc}->{'DEBUG'};
 				} else {
