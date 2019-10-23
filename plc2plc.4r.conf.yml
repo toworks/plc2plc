@@ -22,7 +22,7 @@ read:
     WEIGHT_STAB:
         db: 242
         start: 8
-        bit: 4
+        bit: 5
     WEIGHT_CURRENT_B:
         type: float
         db: 242
@@ -31,15 +31,15 @@ read:
     WEIGHT_STAB_B:
         db: 242
         start: 8
-        bit: 5
+        bit: 6
     WATCH_DOG:
         db: 242
-        start: 8
-        bit: 7
+        start: 9
+        bit: 0
     ALARM:
         db: 242
         start: 8
-        bit: 0
+        bit: 1
 
 write:
     WEIGHT_CURRENT:
@@ -69,4 +69,4 @@ write:
 
 app:
     cycle: 0.5
-    debug: true
+    debug: false
