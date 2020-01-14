@@ -1,0 +1,31 @@
+
+plc:
+    in:
+        # PLC 1200
+        host: 10.21.126.199
+        port: 102
+        rack: 0
+        slot: 1
+    out:
+        # PLC 400
+        host: 10.27.234.7
+        port: 102
+        rack: 0
+        slot: 6
+
+
+read:
+    CMD_TAKE_WEIGHT:
+        db: 12
+        start: 0
+        bit: 2
+
+write:
+    CMD_TAKE_WEIGHT:
+        db: 270
+        start: 10
+        bit: 0
+
+app:
+    cycle: 0.5
+    debug: false
